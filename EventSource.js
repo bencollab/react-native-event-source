@@ -6,7 +6,7 @@
 
 var reTrim = /^(\s|\u00A0)+|(\s|\u00A0)+$/g;
 
-var EventSource = function (url) {
+var EventSource = function (url, headers) {
   var eventsource = this,
       interval = 500, // polling interval
       lastEventId = null,
@@ -18,6 +18,7 @@ var EventSource = function (url) {
   }
 
   this.URL = url;
+  this.headers = headers;
   this.readyState = this.CONNECTING;
   this._pollTimer = null;
   this._xhr = null;
@@ -42,6 +43,13 @@ var EventSource = function (url) {
       xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 
       if (lastEventId != null) xhr.setRequestHeader('Last-Event-ID', lastEventId);
+
+      if (typeof eventsource.headers == 'object') {
+        Object.keys(eventsource.headers).forEach(function (header) {
+          xhr.setRequestHeader(header, eventsource.headers[header]);
+        });
+      }
+
       cache = '';
 
       xhr.timeout = 50000;
@@ -171,7 +179,8 @@ EventSource.prototype = {
   onmessage: null,
   onopen: null,
   readyState: 0,
-  URL: ''
+  URL: '',
+  headers: null
 };
 
 var MessageEvent = function (data, origin, lastEventId) {
